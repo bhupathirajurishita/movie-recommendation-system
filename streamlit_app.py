@@ -1,6 +1,8 @@
 
 import ast
 import random
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 from sklearn.feature_extraction.text import CountVectorizer
@@ -83,6 +85,20 @@ div[data-baseweb="select"] > div {
 """, unsafe_allow_html=True)
 
 
+# Public copies of the same TMDB 5000 CSV files.
+# This avoids storing the large CSV files in the GitHub repository.
+MOVIES_URL = (
+    "https://raw.githubusercontent.com/harshitcodes/"
+    "tmdb_movie_data_analysis/master/tmdb-5000-movie-dataset/"
+    "tmdb_5000_movies.csv"
+)
+CREDITS_URL = (
+    "https://raw.githubusercontent.com/harshitcodes/"
+    "tmdb_movie_data_analysis/master/tmdb-5000-movie-dataset/"
+    "tmdb_5000_credits.csv"
+)
+
+
 def parse_names(value):
     try:
         return [item["name"] for item in ast.literal_eval(value)]
@@ -101,10 +117,24 @@ def get_director(value):
     return ""
 
 
+@st.cache_data
+def load_data():
+    local_movies = Path("tmdb_5000_movies.csv")
+    local_credits = Path("tmdb_5000_credits.csv")
+
+    if local_movies.exists() and local_credits.exists():
+        movies = pd.read_csv(local_movies)
+        credits = pd.read_csv(local_credits)
+    else:
+        movies = pd.read_csv(MOVIES_URL)
+        credits = pd.read_csv(CREDITS_URL)
+
+    return movies, credits
+
+
 @st.cache_resource
 def load_recommender():
-    movies = pd.read_csv("tmdb_5000_movies.csv")
-    credits = pd.read_csv("tmdb_5000_credits.csv")
+    movies, credits = load_data()
 
     movies = movies.merge(
         credits,
@@ -127,9 +157,7 @@ def load_recommender():
     )
     movies["crew"] = movies["crew"].apply(get_director)
 
-    movies["overview"] = movies["overview"].apply(
-        lambda x: x.split()
-    )
+    movies["overview"] = movies["overview"].apply(lambda x: x.split())
     movies["genres"] = movies["genres"].apply(
         lambda x: [i.replace(" ", "") for i in x]
     )
@@ -152,9 +180,7 @@ def load_recommender():
     )
 
     new_df = movies[["title", "tags"]].copy()
-    new_df["tags"] = new_df["tags"].apply(
-        lambda x: " ".join(x)
-    )
+    new_df["tags"] = new_df["tags"].apply(lambda x: " ".join(x))
     new_df["tags"] = new_df["tags"].str.lower()
 
     vectorizer = CountVectorizer(
@@ -168,7 +194,9 @@ def load_recommender():
     return new_df, similarity
 
 
-movies, similarity = load_recommender()
+with st.spinner("🎬 Loading the movie library..."):
+    movies, similarity = load_recommender()
+
 
 st.markdown(
     '<div class="title">🎬 MOVIE MATCH</div>',
