@@ -1,0 +1,39 @@
+name: Daily progress
+description: Record real progress on the movie recommendation
+title: "Daily progress: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this only after actual project or study work related to movie recommendation. Your answers and this issue are public. The workflow archives the entry and closes the issue. Do not submit filler just to create a contribution.
+  - type: textarea
+    id: work
+    attributes:
+      label: What did you work on?
+      description: Name the specific project area or concept.
+      placeholder: "Example: the recommendation function or feature pipeline."
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What changed, did you test, or learn?
+      description: Describe the concrete work or learning from this session.
+      placeholder: "Example: tested behavior when a title is missing, then recorded the actual outcome."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence or result
+      description: Include a file, test result, or concise factual observation.
+      placeholder: "Example: a real test result, changed file, or specific output you observed."
+    validations:
+      required: true
+  - type: textarea
+    id: next
+    attributes:
+      label: Next step
+      description: A useful follow-up, if you have one.
+    validations:
+      required: false
